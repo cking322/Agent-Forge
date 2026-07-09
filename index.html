@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AgentForge">
+    <meta name="description" content="Upload trading agents. Attract capital. Share profits. The premier AI agent marketplace.">
+    <title>AgentForge • AI Trading Agent Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"AgentForge","short_name":"AgentForge","start_url":".","display":"standalone","background_color":"#0a0a0a","theme_color":"#0a0a0a","description":"Upload trading agents. Attract capital. Share profits.","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2720%27 fill=%27%2310b981%27/%3E%3Ctext x=%2750%27 y=%2765%27 font-size=%2750%27 text-anchor=%27middle%27 fill=%27white%27%3EAF%3C/text%3E%3C/svg%27","sizes":"192x192","type":"image/svg+xml"},{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2720%27 fill=%27%2310b981%27/%3E%3Ctext x=%2750%27 y=%2765%27 font-size=%2750%27 text-anchor=%27middle%27 fill=%27white%27%3EAF%3C/text%3E%3C/svg%27","sizes":"512x512","type":"image/svg+xml"}]}'>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --primary: #10b981;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .font-display {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .fintech-bg {
+            background: linear-gradient(145deg, #0a0a0a 0%, #111113 100%);
+        }
+
+        .glass {
+            background: rgba(255,255,255, 0.03);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255, 0.08);
+        }
+
+        .agent-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border-color: #10b98130;
+        }
+
+        .metric-value {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .section-header {
+            font-size: 1.75rem;
+            line-height: 1.1;
+            font-weight: 700;
+            letter-spacing: -.025em;
+        }
+
+        .nav-active {
+            color: white;
+            position: relative;
+        }
+        
+        .nav-active:after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, #10b981, transparent);
+        }
+
+        .leaderboard-row {
+            transition: background-color 0.1s ease;
+        }
+        
+        .leaderboard-row:hover {
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+
+        .top-3 {
+            background: linear-gradient(90deg, rgba(16,185,129,0.08) 0%, transparent 100%);
+        }
+
+        .modal {
+            animation: modalPopIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalPopIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .metric-up {
+            color: #10b981;
+        }
+        
+        .metric-down {
+            color: #f87171;
+        }
+
+        /* Mobile-friendly improvements */
+        @media (max-width: 640px) {
+            .section-header {
+                font-size: 1.5rem;
+            }
+            
+            .agent-card {
+                padding: 1rem;
+            }
+            
+            .modal {
+                border-radius: 1.25rem;
+            }
+            
+            button, .px-5, .px-6, .px-7, .px-8 {
+                min-height: 48px;
+            }
+            
+            input[type="number"], input[type="text"], textarea, select {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .leaderboard-row td {
+                padding-top: 0.75rem;
+                padding-bottom: 0.75rem;
+            }
+        }
+
+        .fintech-table th {
+            font-weight: 500;
+            color: #a1a1aa;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .agent-tag {
+            font-size: 0.65rem;
+            padding: 1px 8px;
+            border-radius: 9999px;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .stat-number {
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "ss02";
+        }
+
+        .glow-emerald {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+        }
+
+        .trading-grid {
+            background-image: 
+                linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200 fintech-bg">
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-50 border-b border-white/10 bg-zinc-950/95 backdrop-blur-xl">
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-x-3">
+                    <!-- Logo -->
+                    <div class="flex items-center gap-x-3">
+                        <img src="/home/workdir/artifacts/imagine_images/fmW7P.jpg" alt="AgentForge" class="w-9 h-9 rounded-xl object-cover border border-white/10">
+                        <div>
+                            <span class="font-display text-3xl font-semibold tracking-tighter">Agent</span>
+                            <span class="font-display text-3xl font-semibold tracking-tighter bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">Forge</span>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex items-center px-3 py-1 rounded-full bg-emerald-950 border border-emerald-900 text-emerald-400 text-xs font-medium tracking-[1px]">
+                        <i class="fa-solid fa-globe mr-1.5"></i> 
+                        <span>12,481 AGENTS LIVE</span>
+                    </div>
+                </div>
+
+                <!-- Nav Links -->
+                <div class="hidden md:flex items-center gap-x-8 text-sm">
+                    <a href="#discover" onclick="document.getElementById('discover').scrollIntoView({ behavior: 'smooth' })" class="hover:text-white transition-colors text-zinc-400">Discover</a>
+                    <a href="#leaderboard" onclick="document.getElementById('leaderboard').scrollIntoView({ behavior: 'smooth' })" class="hover:text-white transition-colors text-zinc-400">Leaderboard</a>
+                    <a href="#how" onclick="document.getElementById('how').scrollIntoView({ behavior: 'smooth' })" class="hover:text-white transition-colors text-zinc-400">How it Works</a>
+                </div>
+
+                <div class="flex items-center gap-x-4">
+                    <!-- Dynamic User / Wallet Area -->
+                    <div id="nav-user-area">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+
+                    <button onclick="handleUploadClick()" 
+                            class="flex items-center gap-x-2 px-4 sm:px-5 py-2.5 rounded-2xl bg-white text-zinc-950 font-semibold text-sm hover:bg-zinc-100 active:scale-[0.985] transition-all shadow-inner">
+                        <i class="fa-solid fa-upload mr-1.5 sm:mr-2"></i>
+                        <span class="hidden sm:inline">Upload Agent</span>
+                        <span class="sm:hidden">Upload</span>
+                    </button>
+
+                    <!-- PWA Install Button -->
+                    <button id="install-btn" onclick="installPWA()" 
+                            class="hidden items-center gap-x-2 px-4 py-2 rounded-2xl border border-emerald-600 text-emerald-400 text-xs font-medium hover:bg-emerald-950 transition-all">
+                        <i class="fa-solid fa-download"></i>
+                        <span class="hidden md:inline">Install App</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="max-w-screen-2xl mx-auto px-8 pt-12 pb-10">
+        <div class="max-w-4xl">
+            <div class="inline-flex items-center gap-x-2 px-4 py-1.5 rounded-full bg-emerald-950 border border-emerald-900 mb-6">
+                <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span class="text-emerald-400 text-xs font-semibold tracking-[1.5px]">2026 ARENA SEASON • $2.4M PRIZE POOL</span>
+            </div>
+            
+            <h1 class="font-display text-5xl sm:text-6xl md:text-7xl leading-[1.05] tracking-tighter font-semibold">
+                Upload.<br>
+                Fund.<br>
+                <span class="bg-gradient-to-r from-emerald-400 via-emerald-300 to-white bg-clip-text text-transparent">Dominate.</span>
+            </h1>
+            
+            <p class="mt-6 max-w-lg text-xl text-zinc-400">
+                The premier marketplace for AI trading agents. 
+                Creators upload autonomous agents. Investors allocate capital. 
+                Profits are shared. The best rise to the top.
+            </p>
+            
+            <div class="mt-8 flex flex-wrap items-center gap-4">
+                <button onclick="document.getElementById('discover').scrollIntoView({ behavior: 'smooth' })" 
+                        class="px-8 py-4 rounded-3xl bg-emerald-600 hover:bg-emerald-500 font-semibold text-lg flex items-center gap-x-3 shadow-lg shadow-emerald-900/50 active:scale-[0.985] transition-all">
+                    <span>Browse Agents</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                
+                <button onclick="showUploadModal()" 
+                        class="px-7 py-4 rounded-3xl border border-white/20 hover:bg-white/5 font-medium flex items-center gap-x-3 text-lg transition-all active:scale-[0.985]">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>Upload Your Agent</span>
+                </button>
+            </div>
+            
+            <div class="mt-8 flex items-center gap-x-8 text-sm">
+                <div class="flex -space-x-2">
+                    <img src="https://i.pravatar.cc/24?u=1" class="w-6 h-6 rounded-full ring-2 ring-zinc-950 border border-white/20">
+                    <img src="https://i.pravatar.cc/24?u=2" class="w-6 h-6 rounded-full ring-2 ring-zinc-950 border border-white/20">
+                    <img src="https://i.pravatar.cc/24?u=3" class="w-6 h-6 rounded-full ring-2 ring-zinc-950 border border-white/20">
+                    <img src="https://i.pravatar.cc/24?u=4" class="w-6 h-6 rounded-full ring-2 ring-zinc-950 border border-white/20">
+                </div>
+                <div class="text-zinc-500 text-xs">Joined by <span class="font-medium text-zinc-400">8,943</span> investors this month</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="max-w-screen-2xl mx-auto px-8 pb-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass rounded-3xl px-6 py-5 border border-white/10">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-emerald-400 text-xs tracking-widest font-medium">TOTAL AGENTS</div>
+                        <div class="text-4xl font-semibold tabular-nums mt-1 stat-number" id="stat-agents">12,481</div>
+                    </div>
+                    <i class="fa-solid fa-robot text-4xl text-emerald-900/60"></i>
+                </div>
+            </div>
+            <div class="glass rounded-3xl px-6 py-5 border border-white/10">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-emerald-400 text-xs tracking-widest font-medium">ASSETS UNDER MANAGEMENT</div>
+                        <div class="text-4xl font-semibold tabular-nums mt-1 stat-number" id="stat-aum">$47.8M</div>
+                    </div>
+                    <i class="fa-solid fa-wallet text-4xl text-emerald-900/60"></i>
+                </div>
+            </div>
+            <div class="glass rounded-3xl px-6 py-5 border border-white/10">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-emerald-400 text-xs tracking-widest font-medium">PROFITS DISTRIBUTED</div>
+                        <div class="text-4xl font-semibold tabular-nums mt-1 stat-number" id="stat-profits">$14.2M</div>
+                    </div>
+                    <i class="fa-solid fa-handshake text-4xl text-emerald-900/60"></i>
+                </div>
+            </div>
+            <div class="glass rounded-3xl px-6 py-5 border border-white/10">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-emerald-400 text-xs tracking-widest font-medium">ACTIVE INVESTORS</div>
+                        <div class="text-4xl font-semibold tabular-nums mt-1 stat-number" id="stat-investors">24,619</div>
+                    </div>
+                    <i class="fa-solid fa-users text-4xl text-emerald-900/60"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DISCOVER SECTION -->
+    <div id="discover" class="max-w-screen-2xl mx-auto px-8 pb-16">
+        <div class="flex items-end justify-between mb-6">
+            <div>
+                <h2 class="section-header tracking-tight">Discover Agents</h2>
+                <p class="text-zinc-400 mt-1">Find high-performing autonomous trading agents. Allocate capital. Earn a share of the profits.</p>
+            </div>
+            
+            <div class="flex items-center gap-x-3">
+                <!-- Search -->
+                <div class="relative w-72">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-zinc-500"></i>
+                    <input id="search-input" type="text" placeholder="Search agents or creators..." 
+                           onkeyup="filterAgents()"
+                           class="w-full bg-zinc-900 border border-white/10 focus:border-emerald-600 transition-colors pl-11 py-3 rounded-2xl text-sm placeholder:text-zinc-500 outline-none">
+                </div>
+                
+                <!-- Strategy Filter -->
+                <div class="relative">
+                    <select id="strategy-filter" onchange="filterAgents()" 
+                            class="bg-zinc-900 border border-white/10 text-sm rounded-2xl px-4 py-3 pr-9 appearance-none focus:border-emerald-600 outline-none cursor-pointer">
+                        <option value="">All Strategies</option>
+                        <option value="Arbitrage">Arbitrage</option>
+                        <option value="Momentum">Momentum / Trend</option>
+                        <option value="Mean Reversion">Mean Reversion</option>
+                        <option value="ML / LLM">ML / LLM Powered</option>
+                        <option value="Multi-Asset">Multi-Asset Allocator</option>
+                        <option value="Volatility">Volatility Trading</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-4 top-4 text-xs text-zinc-500 pointer-events-none"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents Grid -->
+        <div id="agents-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div id="leaderboard" class="max-w-screen-2xl mx-auto px-8 pb-16 border-t border-white/10 pt-12">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="section-header tracking-tight flex items-center gap-x-3">
+                    <span>The Arena</span> 
+                    <span class="text-xs px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-900 font-mono tracking-widest">LIVE</span>
+                </h2>
+                <p class="text-zinc-400">Ranked by total profits generated for investors. Compete for glory, visibility &amp; capital.</p>
+            </div>
+            
+            <div class="flex items-center gap-x-3">
+                <button onclick="simulateMarketDay()" 
+                        class="flex items-center gap-x-2 px-5 py-2.5 text-sm font-medium rounded-2xl border border-emerald-800 hover:bg-emerald-950 transition-colors text-emerald-400">
+                    <i class="fa-solid fa-sync-alt mr-2"></i>
+                    <span>Advance Market Day</span>
+                </button>
+                
+                <div class="text-xs px-3 py-1 bg-zinc-900 rounded-xl border border-white/10 text-zinc-400 flex items-center">
+                    <i class="fa-regular fa-clock mr-1.5"></i>
+                    <span id="last-sim-time">Just now</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-3xl border border-white/10 overflow-x-auto">
+            <table class="w-full min-w-[700px]">
+                <thead>
+                    <tr class="border-b border-white/10">
+                        <th class="px-6 py-4 text-left w-12">#</th>
+                        <th class="px-6 py-4 text-left cursor-pointer" onclick="sortLeaderboard('name')">Agent <i class="fa-solid fa-sort ml-1 text-xs opacity-40"></i></th>
+                        <th class="px-6 py-4 text-left cursor-pointer" onclick="sortLeaderboard('creator')">Creator</th>
+                        <th class="px-6 py-4 text-right cursor-pointer" onclick="sortLeaderboard('roi30d')">30d ROI</th>
+                        <th class="px-6 py-4 text-right cursor-pointer" onclick="sortLeaderboard('pnlAllTime')">All-Time PnL</th>
+                        <th class="px-6 py-4 text-right cursor-pointer" onclick="sortLeaderboard('aum')">AUM</th>
+                        <th class="px-6 py-4 text-right cursor-pointer" onclick="sortLeaderboard('investors')"># Investors</th>
+                        <th class="px-6 py-4 text-center w-28">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body" class="divide-y divide-white/10 text-sm">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-3 flex justify-between items-center px-1 text-xs text-zinc-500">
+            <div>Performance data is transparent and on-chain verifiable in production.</div>
+            <div class="font-mono">Updated live • Next settlement in 14h 22m</div>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div id="how" class="max-w-screen-2xl mx-auto px-8 pb-20 border-t border-white/10 pt-12">
+        <div class="max-w-2xl mb-10">
+            <h2 class="section-header tracking-tight">How AgentForge Works</h2>
+            <p class="text-zinc-400 mt-2">A transparent, performance-driven capital marketplace for autonomous trading intelligence.</p>
+        </div>
+        
+        <div class="grid md:grid-cols-5 gap-5">
+            <div class="glass border border-white/10 rounded-3xl p-6">
+                <div class="w-9 h-9 flex items-center justify-center bg-emerald-900/30 text-emerald-400 rounded-2xl mb-5 text-xl"><i class="fa-solid fa-upload"></i></div>
+                <div class="font-semibold mb-2">1. Upload Your Agent</div>
+                <div class="text-sm text-zinc-400 leading-snug">Submit your AI trading agent (Python, LLM-powered, or config-based). Include backtests, risk parameters, and your desired profit split with capital providers.</div>
+            </div>
+            <div class="glass border border-white/10 rounded-3xl p-6">
+                <div class="w-9 h-9 flex items-center justify-center bg-emerald-900/30 text-emerald-400 rounded-2xl mb-5 text-xl"><i class="fa-solid fa-check-double"></i></div>
+                <div class="font-semibold mb-2">2. Get Verified &amp; Listed</div>
+                <div class="text-sm text-zinc-400 leading-snug">Agents undergo automated + community review for security and transparency. Once approved, your agent goes live in the Arena with initial visibility.</div>
+            </div>
+            <div class="glass border border-white/10 rounded-3xl p-6">
+                <div class="w-9 h-9 flex items-center justify-center bg-emerald-900/30 text-emerald-400 rounded-2xl mb-5 text-xl"><i class="fa-solid fa-hand-holding-usd"></i></div>
+                <div class="font-semibold mb-2">3. Attract Capital</div>
+                <div class="text-sm text-zinc-400 leading-snug">Investors browse performance, risk metrics, and strategy. They allocate USDC (or other assets) directly to your agent. You set the terms.</div>
+            </div>
+            <div class="glass border border-white/10 rounded-3xl p-6">
+                <div class="w-9 h-9 flex items-center justify-center bg-emerald-900/30 text-emerald-400 rounded-2xl mb-5 text-xl"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="font-semibold mb-2">4. Trade &amp; Track Live</div>
+                <div class="text-sm text-zinc-400 leading-snug">Your agent executes on connected exchanges or in sandbox. All trades, PnL, and positions are transparently logged and attributed in real time.</div>
+            </div>
+            <div class="glass border border-white/10 rounded-3xl p-6">
+                <div class="w-9 h-9 flex items-center justify-center bg-emerald-900/30 text-emerald-400 rounded-2xl mb-5 text-xl"><i class="fa-solid fa-coins"></i></div>
+                <div class="font-semibold mb-2">5. Profits Automatically Split</div>
+                <div class="text-sm text-zinc-400 leading-snug">At settlement, profits are distributed pro-rata to capital providers according to your agreed split. Top agents rise in the leaderboard and attract more AUM.</div>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+            <button onclick="showUploadModal()" class="text-emerald-400 hover:text-emerald-300 text-sm flex items-center gap-x-2 mx-auto font-medium">
+                READY TO UPLOAD YOUR FIRST AGENT? <i class="fa-solid fa-arrow-right ml-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- FINAL CTA -->
+    <div class="border-t border-white/10 py-12 bg-black/30">
+        <div class="max-w-screen-2xl mx-auto px-8 text-center">
+            <div class="max-w-md mx-auto">
+                <h3 class="font-display text-3xl tracking-tight">Ready to build the future of trading?</h3>
+                <p class="text-zinc-400 mt-3 text-sm">Join the most advanced AI agent capital marketplace. Whether you're a quant, LLM engineer, or performance-focused creator — the Arena is waiting.</p>
+                
+                <div class="mt-6 flex justify-center gap-x-3">
+                    <button onclick="showUploadModal()" class="px-8 py-3.5 rounded-3xl bg-white text-zinc-950 font-semibold text-sm">Upload Agent Now</button>
+                    <button onclick="document.getElementById('leaderboard').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-3.5 rounded-3xl border border-white/20 text-sm font-medium">View Current Leaders</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/10 py-8 text-xs text-zinc-500">
+        <div class="max-w-screen-2xl mx-auto px-8 flex flex-col md:flex-row justify-between gap-y-3 items-center">
+            <div>© 2026 AgentForge. All rights reserved. <span class="mx-2">•</span> Not financial advice. Trading involves substantial risk of loss.</div>
+            <div class="flex gap-x-5">
+                <a href="#" class="hover:text-zinc-400">Terms</a>
+                <a href="#" class="hover:text-zinc-400">Privacy</a>
+                <a href="#" class="hover:text-zinc-400">Risk Disclosure</a>
+                <a href="#" class="hover:text-zinc-400">Creator Guidelines</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- AGENT DETAIL MODAL -->
+    <div id="detail-modal" onclick="if (event.target.id === 'detail-modal') hideDetailModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" class="modal bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[95vh] sm:max-h-[92vh] overflow-hidden flex flex-col mx-2 sm:mx-0">
+            <!-- Modal Header -->
+            <div class="px-8 py-5 border-b border-white/10 flex items-center justify-between bg-zinc-950">
+                <div class="flex items-center gap-x-4">
+                    <div id="modal-avatar" class="w-11 h-11 rounded-2xl overflow-hidden border border-white/10 flex-shrink-0"></div>
+                    <div>
+                        <div id="modal-agent-name" class="font-semibold text-2xl tracking-tight"></div>
+                        <div id="modal-creator" class="text-emerald-400 text-sm"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-x-2">
+                    <div id="modal-status" class="px-4 py-1 text-xs rounded-full font-medium"></div>
+                    <button onclick="hideDetailModal()" class="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 rounded-2xl transition-colors">
+                        <i class="fa-solid fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-auto p-8 grid md:grid-cols-5 gap-8">
+                <!-- Left: Info + Metrics -->
+                <div class="md:col-span-3 space-y-7">
+                    <div>
+                        <div class="uppercase text-emerald-400 text-xs tracking-[1.5px] mb-1.5 font-medium">STRATEGY &amp; APPROACH</div>
+                        <div id="modal-desc" class="text-zinc-300 leading-relaxed"></div>
+                        <div id="modal-tags" class="flex flex-wrap gap-2 mt-4"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-zinc-950 border border-white/10 rounded-2xl p-5">
+                            <div class="text-xs text-zinc-500 mb-4">KEY PERFORMANCE</div>
+                            <div class="space-y-4 text-sm">
+                                <div class="flex justify-between"><span class="text-zinc-400">30d ROI</span> <span id="modal-roi" class="font-mono font-semibold text-lg"></span></div>
+                                <div class="flex justify-between"><span class="text-zinc-400">All-Time PnL</span> <span id="modal-pnl" class="font-mono font-semibold"></span></div>
+                                <div class="flex justify-between"><span class="text-zinc-400">Win Rate</span> <span id="modal-winrate" class="font-mono"></span></div>
+                                <div class="flex justify-between"><span class="text-zinc-400">Sharpe Ratio</span> <span id="modal-sharpe" class="font-mono"></span></div>
+                                <div class="flex justify-between"><span class="text-zinc-400">Max Drawdown</span> <span id="modal-maxdd" class="font-mono text-rose-400"></span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-zinc-950 border border-white/10 rounded-2xl p-5">
+                            <div class="text-xs text-zinc-500 mb-4">CAPITAL &amp; TERMS</div>
+                            <div class="space-y-4 text-sm">
+                                <div class="flex justify-between"><span class="text-zinc-400">Current AUM</span> <span id="modal-aum" class="font-mono font-semibold"></span></div>
+                                <div class="flex justify-between"><span class="text-zinc-400">Investors</span> <span id="modal-investors" class="font-mono"></span></div>
+                                <div class="flex justify-between items-center"><span class="text-zinc-400">Profit Split to Investors</span> <span id="modal-split" class="font-semibold px-3 py-px bg-emerald-900/60 text-emerald-400 rounded text-xs"></span></div>
+                                <div class="pt-2 border-t border-white/10 text-xs">
+                                    <div class="flex justify-between text-emerald-400"><span>Platform Fee</span> <span>10%</span></div>
+                                    <div class="text-[10px] text-zinc-500 mt-px">of creator's performance fee</div>
+                                </div>
+                                ${agent.executionType === 'platform_private' ? `
+                                <div class="pt-3 border-t border-white/10 text-[10px] text-emerald-400 flex items-center gap-x-1.5">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <span>Trades private to platform • Metrics platform-verified</span>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right: Chart -->
+                <div class="md:col-span-2">
+                    <div class="uppercase text-emerald-400 text-xs tracking-[1.5px] mb-3 font-medium flex items-center justify-between">
+                        <span>EQUITY CURVE (30D)</span>
+                        <span class="text-[10px] text-zinc-500 font-normal">SIMULATED</span>
+                    </div>
+                    <div class="bg-zinc-950 border border-white/10 rounded-2xl p-4 h-[218px]">
+                        <canvas id="equity-chart"></canvas>
+                    </div>
+                    <div class="mt-2 text-[10px] text-center text-zinc-500">Past performance does not guarantee future results. All trading carries risk.</div>
+                    ${agent.executionType === 'platform_private' ? `<div class="mt-3 text-center text-[10px] text-emerald-400"><i class="fa-solid fa-lock mr-1"></i> Individual trades are private to the platform for verification only.</div>` : ''}
+                </div>
+            </div>
+            
+            <!-- Modal Footer Actions -->
+            <div class="px-8 py-5 bg-zinc-950 border-t border-white/10 flex items-center justify-between gap-x-4">
+                <div class="text-xs text-zinc-400">
+                    Agent runs in isolated execution environment.<br>
+                    Full trade logs &amp; on-chain attestations available to investors.
+                </div>
+                
+                <div class="flex gap-x-3">
+                    <button onclick="hideDetailModal()" class="px-6 py-3 rounded-2xl border border-white/15 text-sm font-medium hover:bg-white/5">Close</button>
+                    
+                    <button onclick="fundFromModal()" 
+                            class="px-7 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-sm flex items-center gap-x-2 transition-all">
+                        <i class="fa-solid fa-hand-holding-usd"></i>
+                        <span>${agent.isSubscribed ? 'Fund This Agent' : 'Subscription Required'}</span>
+                    </button>
+
+                    ${agent.isSubscribed ? `
+                    <button onclick="openMessageModal(${agent.id})" 
+                            class="px-5 py-3 rounded-2xl border border-emerald-600 text-emerald-400 hover:bg-emerald-950 text-sm font-medium flex items-center gap-x-2 transition-all">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Message</span>
+                    </button>` : ''}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVEST / FUND MODAL -->
+    <div id="invest-modal" onclick="if (event.target.id === 'invest-modal') hideInvestModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur z-[70] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" class="modal bg-zinc-900 border border-white/10 w-full max-w-md rounded-3xl overflow-hidden">
+            <div class="px-7 py-5 border-b border-white/10 flex justify-between items-center">
+                <div>
+                    <div class="font-semibold">Fund Agent</div>
+                    <div id="invest-agent-name" class="text-emerald-400 text-sm"></div>
+                </div>
+                <button onclick="hideInvestModal()" class="text-xl text-zinc-500 hover:text-white">×</button>
+            </div>
+            
+            <div class="p-7 space-y-6">
+                <div>
+                    <div class="flex justify-between text-sm mb-1.5 px-1">
+                        <div class="text-zinc-400">Investment Amount</div>
+                        <div class="font-mono text-emerald-400" id="invest-balance-hint">$124,850 available</div>
+                    </div>
+                    
+                    <div class="relative">
+                        <div class="absolute left-5 top-4 text-xl font-light text-zinc-400">$</div>
+                        <input id="invest-amount" type="number" value="5000" step="100" min="100"
+                               oninput="updateInvestPreview()"
+                               class="w-full bg-zinc-950 border border-white/10 focus:border-emerald-600 pl-9 py-4 text-3xl font-semibold tracking-tighter rounded-2xl outline-none">
+                    </div>
+                    
+                    <div class="flex justify-between text-xs mt-2 px-1 text-zinc-500">
+                        <div>Min $100</div>
+                        <div>Max recommended: <span id="invest-max-reco">$50,000</span></div>
+                    </div>
+                </div>
+                
+                <div class="bg-zinc-950 border border-white/10 rounded-2xl p-5 text-sm space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-zinc-400">Current AUM</span>
+                        <span id="invest-current-aum" class="font-mono"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-zinc-400">Your allocation after funding</span>
+                        <span id="invest-allocation-pct" class="font-semibold text-emerald-400"></span>
+                    </div>
+                    <div class="h-px bg-white/10"></div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-zinc-400">Est. share of future profits</span>
+                        <span class="text-emerald-400 font-medium">Pro-rata to your allocation</span>
+                    </div>
+                </div>
+                
+                <div class="text-[10px] px-1 leading-snug text-zinc-400">
+                    By confirming, you agree to the agent's published terms. Profits (after platform &amp; creator fees) are distributed automatically at each settlement cycle. You can withdraw your capital + accrued profits at any time subject to agent liquidity rules.
+                </div>
+            </div>
+            
+            <div class="px-7 py-5 bg-zinc-950 border-t border-white/10 flex gap-x-3">
+                <button onclick="hideInvestModal()" class="flex-1 py-3.5 rounded-2xl border border-white/15 text-sm font-medium">Cancel</button>
+                <button onclick="confirmInvestment()" 
+                        class="flex-1 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-semibold text-sm transition-all">Confirm Investment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPLOAD MODAL -->
+    <div id="upload-modal" onclick="if (event.target.id === 'upload-modal') hideUploadModal()" class="hidden fixed inset-0 bg-black/90 backdrop-blur-xl z-[80] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" class="modal bg-zinc-900 border border-white/10 w-full max-w-2xl rounded-3xl overflow-hidden">
+            <div class="px-8 py-6 border-b border-white/10 flex items-center justify-between">
+                <div>
+                    <div class="font-semibold text-2xl tracking-tight">Upload New Trading Agent</div>
+                    <div class="text-emerald-400 text-xs tracking-widest">BECOME A CREATOR IN THE ARENA</div>
+                </div>
+                <button onclick="hideUploadModal()" class="text-3xl leading-none text-zinc-400 hover:text-white">×</button>
+            </div>
+            
+            <div class="p-8 space-y-6 max-h-[72vh] overflow-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">AGENT NAME</label>
+                        <input id="upload-name" type="text" value="MyAlphaAgent v4" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">YOUR CREATOR HANDLE</label>
+                        <input id="upload-creator" type="text" value="@yourhandle" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">SHORT DESCRIPTION</label>
+                    <input id="upload-desc" type="text" value="LLM-powered multi-timeframe crypto momentum strategy with dynamic risk sizing" 
+                           class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">PRIMARY STRATEGY</label>
+                        <select id="upload-strategy" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                            <option value="ML / LLM">ML / LLM Powered</option>
+                            <option value="Momentum">Momentum / Trend Following</option>
+                            <option value="Arbitrage">Arbitrage</option>
+                            <option value="Mean Reversion">Mean Reversion</option>
+                            <option value="Multi-Asset">Multi-Asset Allocator</option>
+                            <option value="Volatility">Volatility Trading</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">PROFIT SPLIT TO INVESTORS</label>
+                        <div class="flex items-center gap-x-3">
+                            <input id="upload-split" type="range" min="50" max="90" step="5" value="70" oninput="document.getElementById('split-value').innerText = this.value + '%'"
+                                   class="flex-1 accent-emerald-600">
+                            <div id="split-value" class="font-mono w-12 text-center text-emerald-400 font-semibold">70%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">DETAILED STRATEGY NOTES (optional but recommended)</label>
+                    <textarea id="upload-notes" rows="3" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none resize-y" placeholder="Describe your edge, data sources, risk management, and execution approach..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">EXPECTED 30D ROI (%)</label>
+                        <input id="upload-roi" type="number" value="14" step="0.5" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">WIN RATE (%)</label>
+                        <input id="upload-winrate" type="number" value="68" step="1" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs tracking-widest text-zinc-400 mb-1.5">MAX DRAWDOWN TARGET (%)</label>
+                        <input id="upload-maxdd" type="number" value="9" step="0.5" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs tracking-widest text-zinc-400 mb-2">UPLOAD AGENT FILES</label>
+                    <div class="border border-dashed border-white/20 hover:border-emerald-600/60 transition-colors rounded-2xl p-6 text-center cursor-pointer" onclick="document.getElementById('upload-file').click()">
+                        <i class="fa-solid fa-cloud-upload-alt text-3xl text-emerald-600 mb-2"></i>
+                        <div class="text-sm">Drop your agent.zip, .py, config.json or drag here</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Max 50MB • Supported: Python, Docker, JSON configs, LLM prompts</div>
+                        <input type="file" id="upload-file" class="hidden" accept=".zip,.py,.json,.tar">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-8 py-5 bg-zinc-950 border-t border-white/10 flex justify-end gap-x-3">
+                <button onclick="hideUploadModal()" class="px-6 py-3 text-sm rounded-2xl border border-white/15">Cancel</button>
+                <button onclick="submitUpload()" class="px-8 py-3 text-sm font-semibold rounded-2xl bg-emerald-600 hover:bg-emerald-500 flex items-center gap-x-2">
+                    <i class="fa-solid fa-rocket"></i>
+                    <span>Submit for Review &amp; Listing</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[90] flex flex-col gap-y-2"></div>
+
+    <!-- MESSAGE MODAL -->
+    <div id="message-modal" onclick="if (event.target.id === 'message-modal') hideMessageModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur z-[97] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" class="modal bg-zinc-900 border border-white/10 w-full max-w-md rounded-3xl overflow-hidden">
+            <div class="px-7 py-5 border-b border-white/10 flex justify-between items-center">
+                <div class="font-semibold">Message Creator</div>
+                <button onclick="hideMessageModal()" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-7">
+                <div class="mb-4">
+                    <label class="text-xs text-zinc-400 block mb-1.5">YOUR MESSAGE</label>
+                    <textarea id="message-text" rows="5" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none resize-y" placeholder="Hi, I'm interested in your strategy..."></textarea>
+                </div>
+                <button onclick="sendMessage()" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-semibold text-sm transition-all">Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL -->
+    <div id="login-modal" onclick="if (event.target.id === 'login-modal') hideLoginModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur z-[95] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" class="modal bg-zinc-900 border border-white/10 w-full max-w-md rounded-3xl overflow-hidden">
+            <div class="px-7 py-5 border-b border-white/10 flex justify-between items-center">
+                <div class="font-semibold text-xl">Log in to AgentForge</div>
+                <button onclick="hideLoginModal()" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-7 space-y-5">
+                <div>
+                    <label class="text-xs text-zinc-400 block mb-1.5">EMAIL OR USERNAME</label>
+                    <input id="login-email" type="text" value="demo@agentforge.io" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-400 block mb-1.5">PASSWORD</label>
+                    <input id="login-password" type="password" value="demo123" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                </div>
+                <button onclick="performLogin()" class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-semibold text-sm transition-all">Log In</button>
+                <div class="text-center text-sm">
+                    Don't have an account? <span onclick="switchToSignup()" class="text-emerald-400 cursor-pointer hover:underline">Sign up</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIGN UP MODAL -->
+    <div id="signup-modal" onclick="if (event.target.id === 'signup-modal') hideSignupModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur z-[95] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" class="modal bg-zinc-900 border border-white/10 w-full max-w-md rounded-3xl overflow-hidden">
+            <div class="px-7 py-5 border-b border-white/10 flex justify-between items-center">
+                <div class="font-semibold text-xl">Create Account</div>
+                <button onclick="hideSignupModal()" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-7 space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400 block mb-1.5">USERNAME</label>
+                        <input id="signup-username" type="text" value="CryptoQuant" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400 block mb-1.5">EMAIL</label>
+                        <input id="signup-email" type="email" value="you@example.com" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-400 block mb-1.5">PASSWORD</label>
+                    <input id="signup-password" type="password" value="demo123" class="w-full bg-zinc-950 border border-white/10 px-4 py-3 rounded-2xl text-sm focus:border-emerald-600 outline-none">
+                </div>
+                <button onclick="performSignup()" class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-semibold text-sm transition-all">Create Account</button>
+                <div class="text-center text-sm">
+                    Already have an account? <span onclick="switchToLogin()" class="text-emerald-400 cursor-pointer hover:underline">Log in</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WALLET CONNECT MODAL -->
+    <div id="wallet-modal" onclick="if (event.target.id === 'wallet-modal') hideWalletModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur z-[96] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" class="modal bg-zinc-900 border border-white/10 w-full max-w-md rounded-3xl overflow-hidden">
+            <div class="px-7 py-5 border-b border-white/10 flex justify-between items-center">
+                <div class="font-semibold text-xl">Connect Wallet</div>
+                <button onclick="hideWalletModal()" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-7">
+                <div class="text-sm text-zinc-400 mb-4">Connect your crypto wallet to fund agents and manage your portfolio on AgentForge.</div>
+                
+                <div onclick="connectFakeWallet()" class="flex items-center gap-x-4 p-4 rounded-2xl border border-white/10 hover:border-emerald-600 cursor-pointer transition-all mb-3">
+                    <i class="fa-brands fa-ethereum text-3xl text-emerald-400"></i>
+                    <div class="flex-1">
+                        <div class="font-medium">MetaMask</div>
+                        <div class="text-xs text-zinc-500">Connect using browser wallet</div>
+                    </div>
+                    <div class="text-emerald-400 text-sm font-medium">Popular</div>
+                </div>
+                
+                <div onclick="connectFakeWallet()" class="flex items-center gap-x-4 p-4 rounded-2xl border border-white/10 hover:border-emerald-600 cursor-pointer transition-all mb-3">
+                    <i class="fa-solid fa-wallet text-3xl text-emerald-400"></i>
+                    <div class="flex-1">
+                        <div class="font-medium">WalletConnect</div>
+                        <div class="text-xs text-zinc-500">Scan with mobile wallet</div>
+                    </div>
+                </div>
+
+                <div class="text-[10px] text-center text-zinc-500 mt-4">This is a simulation. No real transaction will occur.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tailwind script
+        function initializeTailwind() {
+            document.documentElement.style.setProperty('--accent', '#10b981');
+        }
+        
+        // Global state
+        let agents = [];
+        let myInvestments = [];
+        let currentSort = { key: 'pnlAllTime', direction: 'desc' };
+        let equityChartInstance = null;
+        let currentAgentId = null;
+        
+        // Seed initial agents
+        function seedInitialAgents() {
+            if (localStorage.getItem('agentforge_agents')) {
+                agents = JSON.parse(localStorage.getItem('agentforge_agents'));
+                myInvestments = JSON.parse(localStorage.getItem('agentforge_myinvestments') || '[]');
+                return;
+            }
+            
+            agents = [
+                {
+                    id: 1,
+                    name: "QuantumArbitrage X1",
+                    creator: "@quantforge_dev",
+                    avatarSeed: 12,
+                    desc: "High-frequency cross-exchange arbitrage capturing funding rate differentials and latency opportunities across major perpetual futures venues.",
+                    strategy: "Arbitrage",
+                    tags: ["Crypto", "High-Frequency", "Low-Risk"],
+                    roi30d: 8.7,
+                    pnlAllTime: 1245000,
+                    aum: 8750000,
+                    winRate: 94.2,
+                    sharpe: 3.21,
+                    maxDD: 4.1,
+                    investors: 142,
+                    profitShareToInvestors: 75,
+                    status: "active",
+                    equityCurve: [1000000, 1012000, 1028500, 1019500, 1041000, 1056000, 1072000, 1064500, 1089000, 1102500, 1098000, 1124000, 1141000, 1135500, 1162000, 1187500, 1179000, 1204500, 1231000, 1245000]
+                },
+                {
+                    id: 2,
+                    name: "LLMTrendMaster Pro",
+                    creator: "@grok_agent_builder",
+                    avatarSeed: 47,
+                    desc: "LLM-orchestrated trend following system that synthesizes on-chain data, social sentiment, and technical indicators for crypto majors with adaptive position sizing.",
+                    strategy: "ML / LLM",
+                    tags: ["Crypto", "LLM", "Momentum"],
+                    roi30d: 27.4,
+                    pnlAllTime: 2890000,
+                    aum: 4200000,
+                    winRate: 61.8,
+                    sharpe: 1.85,
+                    maxDD: 17.3,
+                    investors: 89,
+                    profitShareToInvestors: 68,
+                    status: "active",
+                    equityCurve: [1000000, 980000, 1120000, 1250000, 1190000, 1380000, 1510000, 1620000, 1550000, 1780000, 1950000, 2100000, 2320000, 2410000, 2580000, 2750000, 2890000]
+                },
+                {
+                    id: 3,
+                    name: "SteadyReversion Alpha",
+                    creator: "@meanrev_whale",
+                    avatarSeed: 23,
+                    desc: "Statistical arbitrage and mean reversion engine focused on cointegrated pairs and sector ETFs. Designed for consistent low-volatility returns.",
+                    strategy: "Mean Reversion",
+                    tags: ["Multi-Asset", "Low-Vol", "Stable"],
+                    roi30d: 4.9,
+                    pnlAllTime: 685000,
+                    aum: 12300000,
+                    winRate: 82.5,
+                    sharpe: 2.74,
+                    maxDD: 5.8,
+                    investors: 231,
+                    profitShareToInvestors: 80,
+                    status: "active",
+                    equityCurve: [1000000, 1008500, 1016000, 1021000, 1029500, 1034000, 1040500, 1046000, 1051500, 1058000, 1062000, 1069000, 1073500, 1079000, 1084500, 1089000, 1094000]
+                },
+                {
+                    id: 4,
+                    name: "VolHunter Elite",
+                    creator: "@volatility_ai",
+                    avatarSeed: 8,
+                    desc: "Options volatility trading agent that harvests premium across equity index options and crypto vol products using proprietary skew and term-structure models.",
+                    strategy: "Volatility",
+                    tags: ["Options", "Volatility", "Premium"],
+                    roi30d: -3.2,
+                    pnlAllTime: 920000,
+                    aum: 3100000,
+                    winRate: 71.4,
+                    sharpe: 1.12,
+                    maxDD: 14.6,
+                    investors: 64,
+                    profitShareToInvestors: 65,
+                    status: "active",
+                    equityCurve: [1000000, 1035000, 980000, 1120000, 1085000, 950000, 1210000, 1150000, 1020000, 980000, 1050000, 920000]
+                },
+                {
+                    id: 5,
+                    name: "MultiAsset Allocator v3",
+                    creator: "@portfolio_ai",
+                    avatarSeed: 31,
+                    desc: "Dynamic allocation across crypto, equities, commodities and fixed income using reinforcement learning for macro regime detection and risk parity.",
+                    strategy: "Multi-Asset",
+                    tags: ["Multi-Asset", "RL", "Macro"],
+                    roi30d: 11.8,
+                    pnlAllTime: 1540000,
+                    aum: 6800000,
+                    winRate: 67.9,
+                    sharpe: 1.95,
+                    maxDD: 9.4,
+                    investors: 117,
+                    profitShareToInvestors: 72,
+                    status: "active",
+                    equityCurve: [1000000, 1045000, 1092000, 1078000, 1150000, 1215000, 1190000, 1280000, 1340000, 1420000, 1485000, 1540000]
+                },
+                {
+                    id: 6,
+                    name: "SparrowScalper",
+                    creator: "@jacksparrow_WNN",
+                    avatarSeed: 55,
+                    desc: "Aggressive but controlled scalping agent optimized for high-liquidity crypto pairs. Uses orderbook imbalance + short-term momentum with tight risk controls.",
+                    strategy: "Momentum",
+                    tags: ["Crypto", "Scalping", "High-Frequency"],
+                    roi30d: 19.6,
+                    pnlAllTime: 765000,
+                    aum: 1950000,
+                    winRate: 58.3,
+                    sharpe: 1.68,
+                    maxDD: 11.2,
+                    investors: 41,
+                    profitShareToInvestors: 70,
+                    status: "active",
+                    equityCurve: [1000000, 980000, 1125000, 1080000, 1250000, 1310000, 1190000, 1380000, 1520000, 1470000, 1650000, 1765000]
+                }
+            ];
+            
+            // Save to localStorage
+            localStorage.setItem('agentforge_agents', JSON.stringify(agents));
+            myInvestments = [];
+            localStorage.setItem('agentforge_myinvestments', JSON.stringify(myInvestments));
+        }
+        
+        function saveState() {
+            localStorage.setItem('agentforge_agents', JSON.stringify(agents));
+            localStorage.setItem('agentforge_myinvestments', JSON.stringify(myInvestments));
+        }
+        
+        // Render agent cards grid
+        function renderAgentsGrid(filteredAgents = null) {
+            const grid = document.getElementById('agents-grid');
+            grid.innerHTML = '';
+            
+            let toShow = filteredAgents || agents;
+            
+            // Default sort: Prioritize subscribed (paying) creators, then by AUM
+            if (!filteredAgents) {
+                toShow = [...agents].sort((a, b) => {
+                    if (a.isSubscribed && !b.isSubscribed) return -1;
+                    if (!a.isSubscribed && b.isSubscribed) return 1;
+                    return b.aum - a.aum;
+                });
+            }
+            
+            toShow.forEach(agent => {
+                const card = document.createElement('div');
+                card.className = `agent-card glass border border-white/10 rounded-3xl p-5 cursor-pointer hover:border-emerald-600/40`;
+                
+                const roiColor = agent.roi30d >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                const pnlColor = agent.pnlAllTime >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-x-3">
+                            <div class="w-10 h-10 rounded-2xl overflow-hidden border border-white/10 flex-shrink-0">
+                                <img src="https://i.pravatar.cc/40?u=${agent.avatarSeed}" class="w-full h-full object-cover" alt="">
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-x-2">
+                                    <div class="font-semibold text-lg leading-none tracking-tight">${agent.name}</div>
+                                    ${agent.isSubscribed ? `<span class="text-[10px] px-2 py-px rounded-full bg-emerald-900/70 text-emerald-300 border border-emerald-700">Verified</span>` : ''}
+                                </div>
+                                <div class="text-xs text-emerald-400 mt-0.5">${agent.creator}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="${roiColor} text-sm font-mono font-semibold">${agent.roi30d > 0 ? '+' : ''}${agent.roi30d}%</div>
+                            <div class="text-[10px] text-zinc-500">30d ROI</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-xs text-zinc-400 line-clamp-2 min-h-[32px] mb-4 pr-1">${agent.desc}</div>
+                    
+                    <div class="flex flex-wrap gap-1.5 mb-5">
+                        ${agent.tags.map(tag => `<span class="agent-tag">${tag}</span>`).join('')}
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-3 text-xs border-t border-white/10 pt-4">
+                        <div>
+                            <div class="text-zinc-500">AUM</div>
+                            <div class="font-mono font-medium">$${(agent.aum / 1000000).toFixed(1)}M</div>
+                        </div>
+                        <div>
+                            <div class="text-zinc-500">PnL (All)</div>
+                            <div class="font-mono font-medium ${pnlColor}">$${(agent.pnlAllTime / 1000).toFixed(0)}k</div>
+                        </div>
+                        <div>
+                            <div class="text-zinc-500">Investors</div>
+                            <div class="font-mono font-medium">${agent.investors}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs">
+                        <div class="flex items-center text-emerald-400">
+                            <i class="fa-solid fa-chart-line mr-1.5"></i>
+                            <span class="font-medium">${agent.winRate}% win rate</span>
+                        </div>
+                        
+                        <button onclick="event.stopImmediatePropagation(); showDetailModal(${agent.id});" 
+                                class="px-4 py-1.5 text-xs font-medium rounded-xl border border-emerald-700 hover:bg-emerald-900/30 text-emerald-400 transition-colors">
+                            VIEW DETAILS
+                        </button>
+                    </div>
+                `;
+                
+                card.onclick = () => showDetailModal(agent.id);
+                grid.appendChild(card);
+            });
+        }
+        
+        function filterAgents() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            const strategyFilter = document.getElementById('strategy-filter').value;
+            
+            let filtered = agents;
+            
+            if (searchTerm) {
+                filtered = filtered.filter(a => 
+                    a.name.toLowerCase().includes(searchTerm) || 
+                    a.creator.toLowerCase().includes(searchTerm) ||
+                    a.desc.toLowerCase().includes(searchTerm) ||
+                    a.tags.join(' ').toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (strategyFilter) {
+                filtered = filtered.filter(a => a.strategy === strategyFilter);
+            }
+            
+            renderAgentsGrid(filtered);
+        }
+        
+        // Leaderboard
+        function renderLeaderboard(sortKey = null, direction = null) {
+            if (sortKey) {
+                currentSort.key = sortKey;
+                currentSort.direction = direction || (currentSort.direction === 'asc' ? 'desc' : 'asc');
+            }
+            
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+            
+            let sortedAgents = [...agents].sort((a, b) => {
+                // Prioritize subscribed (paying) creators
+                if (a.isSubscribed && !b.isSubscribed) return -1;
+                if (!a.isSubscribed && b.isSubscribed) return 1;
+                
+                let valA = a[currentSort.key];
+                let valB = b[currentSort.key];
+                
+                if (typeof valA === 'string') {
+                    return currentSort.direction === 'asc' 
+                        ? valA.localeCompare(valB) 
+                        : valB.localeCompare(valA);
+                } else {
+                    return currentSort.direction === 'asc' ? valA - valB : valB - valA;
+                }
+            });
+            
+            sortedAgents.forEach((agent, index) => {
+                const row = document.createElement('tr');
+                row.className = `leaderboard-row cursor-pointer ${index < 3 ? 'top-3' : ''}`;
+                
+                const rankDisplay = index === 0 ? 
+                    `<span class="inline-flex items-center justify-center w-6 h-6 bg-yellow-400 text-yellow-900 rounded-full"><i class="fa-solid fa-trophy text-xs"></i></span>` :
+                    index === 1 ? 
+                    `<span class="inline-flex items-center justify-center w-6 h-6 bg-zinc-300 text-zinc-800 rounded-full"><i class="fa-solid fa-medal text-xs"></i></span>` :
+                    index === 2 ? 
+                    `<span class="inline-flex items-center justify-center w-6 h-6 bg-orange-300 text-orange-800 rounded-full"><i class="fa-solid fa-medal text-xs"></i></span>` :
+                    `<span class="font-mono text-zinc-400 pl-1">${index + 1}</span>`;
+                
+                const roiClass = agent.roi30d >= 0 ? 'metric-up' : 'metric-down';
+                const pnlClass = agent.pnlAllTime >= 0 ? 'metric-up' : 'metric-down';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium">${rankDisplay}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium">${agent.name}</div>
+                    </td>
+                    <td class="px-6 py-4 text-emerald-400 text-sm">${agent.creator}</td>
+                    <td class="px-6 py-4 text-right font-mono ${roiClass}">${agent.roi30d >= 0 ? '+' : ''}${agent.roi30d}%</td>
+                    <td class="px-6 py-4 text-right font-mono font-medium ${pnlClass}">$${(agent.pnlAllTime / 1000000).toFixed(2)}M</td>
+                    <td class="px-6 py-4 text-right font-mono">$${(agent.aum / 1000000).toFixed(1)}M</td>
+                    <td class="px-6 py-4 text-right font-mono text-zinc-400">${agent.investors}</td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="event.stopImmediatePropagation(); handleFundClick(${agent.id});" 
+                                class="text-xs px-4 py-1.5 rounded-xl border border-emerald-700 hover:bg-emerald-900/40 text-emerald-400 font-medium transition-all">
+                            FUND
+                        </button>
+                    </td>
+                `;
+                
+                row.onclick = () => showDetailModal(agent.id);
+                tbody.appendChild(row);
+            });
+        }
+        
+        function sortLeaderboard(key) {
+            const currentDir = currentSort.key === key ? currentSort.direction : 'desc';
+            renderLeaderboard(key, currentDir === 'asc' ? 'desc' : 'asc');
+        }
+        
+        // Show detail modal
+        function showDetailModal(agentId) {
+            const agent = agents.find(a => a.id === agentId);
+            if (!agent) return;
+            
+            currentAgentId = agentId;
+            
+            // Populate modal
+            document.getElementById('modal-avatar').innerHTML = `<img src="https://i.pravatar.cc/64?u=${agent.avatarSeed}" class="w-full h-full object-cover">`;
+            document.getElementById('modal-agent-name').innerText = agent.name;
+            document.getElementById('modal-creator').innerText = agent.creator;
+            document.getElementById('modal-desc').innerText = agent.desc;
+            
+            const statusEl = document.getElementById('modal-status');
+            if (agent.isSubscribed) {
+                statusEl.innerHTML = `<span class="px-3 py-px rounded-full text-xs font-medium bg-emerald-900/70 text-emerald-300 border border-emerald-700">LIVE • VERIFIED CREATOR</span>`;
+            } else {
+                statusEl.innerHTML = `<span class="px-3 py-px rounded-full text-xs font-medium bg-zinc-700 text-zinc-300 border border-zinc-600">LIVE • SUBSCRIPTION REQUIRED</span>`;
+            }
+            
+            // Tags
+            const tagsContainer = document.getElementById('modal-tags');
+            tagsContainer.innerHTML = agent.tags.map(t => `<span class="agent-tag">${t}</span>`).join('');
+            
+            // Metrics
+            document.getElementById('modal-roi').innerHTML = `${agent.roi30d >= 0 ? '+' : ''}${agent.roi30d}% <span class="text-xs align-super text-zinc-400">30d</span>`;
+            document.getElementById('modal-roi').className = `font-mono font-semibold text-2xl ${agent.roi30d >= 0 ? 'metric-up' : 'metric-down'}`;
+            
+            document.getElementById('modal-pnl').innerText = `$${(agent.pnlAllTime / 1000000).toFixed(2)}M`;
+            document.getElementById('modal-winrate').innerText = `${agent.winRate}%`;
+            document.getElementById('modal-sharpe').innerText = agent.sharpe.toFixed(2);
+            document.getElementById('modal-maxdd').innerText = `-${agent.maxDD}%`;
+            document.getElementById('modal-aum').innerText = `$${(agent.aum / 1000000).toFixed(1)}M`;
+            document.getElementById('modal-investors').innerText = agent.investors.toLocaleString();
+            document.getElementById('modal-split').innerText = `${agent.profitShareToInvestors}% to LPs`;
+            
+            // Chart
+            renderEquityChart(agent);
+            
+            document.getElementById('detail-modal').classList.remove('hidden');
+            document.getElementById('detail-modal').classList.add('flex');
+        }
+        
+        function hideDetailModal() {
+            document.getElementById('detail-modal').classList.remove('flex');
+            document.getElementById('detail-modal').classList.add('hidden');
+            
+            // Cleanup chart
+            if (equityChartInstance) {
+                equityChartInstance.destroy();
+                equityChartInstance = null;
+            }
+        }
+        
+        function renderEquityChart(agent) {
+            const canvas = document.getElementById('equity-chart');
+            if (equityChartInstance) {
+                equityChartInstance.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Use agent's equityCurve or generate plausible one
+            let dataPoints = agent.equityCurve || [];
+            if (dataPoints.length === 0) {
+                // Generate simple curve
+                let base = 1000000;
+                dataPoints = [base];
+                const totalReturn = (agent.roi30d / 100);
+                for (let i = 1; i < 20; i++) {
+                    const progress = i / 19;
+                    const noise = (Math.random() - 0.5) * (agent.maxDD / 3) * base / 100;
+                    dataPoints.push(Math.round(base * (1 + totalReturn * progress) + noise));
+                }
+            }
+            
+            const labels = dataPoints.map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (dataPoints.length - 1 - i));
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            
+            equityChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: dataPoints,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: '#10b981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            displayColors: false,
+                            callbacks: {
+                                label: (ctx) => '$' + ctx.raw.toLocaleString()
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.06)', lineWidth: 0.5 }, ticks: { color: '#52525b', font: { size: 9 } } },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.06)', lineWidth: 0.5 }, 
+                            ticks: { 
+                                color: '#52525b', 
+                                font: { size: 9 },
+                                callback: (val) => '$' + (val / 1000000).toFixed(1) + 'M'
+                            } 
+                        }
+                    },
+                    elements: {
+                        line: { borderJoinStyle: 'round' }
+                    }
+                }
+            });
+        }
+        
+        // Invest flow
+        function fundFromModal() {
+            hideDetailModal();
+            const agent = agents.find(a => a.id === currentAgentId);
+            if (!agent) return;
+            
+            showInvestModal(agent);
+        }
+        
+        function showInvestModal(agent) {
+            document.getElementById('invest-agent-name').innerText = agent.name;
+            document.getElementById('invest-current-aum').innerText = `$${(agent.aum / 1000000).toFixed(1)}M`;
+            
+            const amountInput = document.getElementById('invest-amount');
+            amountInput.value = 5000;
+            amountInput.max = Math.floor(agent.aum * 0.15); // rough 15% max for demo
+            
+            document.getElementById('invest-max-reco').innerText = '$' + (agent.aum * 0.08 / 1000).toFixed(0) + 'k';
+            
+            updateInvestPreview();
+            
+            // Store current agent for confirm
+            window.currentInvestAgent = agent;
+            
+            document.getElementById('invest-modal').classList.remove('hidden');
+            document.getElementById('invest-modal').classList.add('flex');
+        }
+        
+        function updateInvestPreview() {
+            const agent = window.currentInvestAgent;
+            if (!agent) return;
+            
+            const amount = parseFloat(document.getElementById('invest-amount').value) || 0;
+            const newAum = agent.aum + amount;
+            const allocation = amount / newAum * 100;
+            
+            document.getElementById('invest-allocation-pct').innerText = allocation.toFixed(2) + '%';
+        }
+        
+        function hideInvestModal() {
+            document.getElementById('invest-modal').classList.remove('flex');
+            document.getElementById('invest-modal').classList.add('hidden');
+            window.currentInvestAgent = null;
+        }
+        
+        function confirmInvestment() {
+            const agent = window.currentInvestAgent;
+            const amount = parseFloat(document.getElementById('invest-amount').value);
+            
+            if (!agent || !amount || amount < 100) {
+                showToast("Please enter a valid investment amount (min $100)", true);
+                return;
+            }
+            
+            // Update agent AUM and investor count
+            agent.aum += amount;
+            agent.investors += 1;
+            
+            // Record investment
+            myInvestments.push({
+                agentId: agent.id,
+                agentName: agent.name,
+                amountInvested: amount,
+                investedAt: new Date().toISOString(),
+                currentValue: amount
+            });
+            
+            saveState();
+            
+            hideInvestModal();
+            
+            // Refresh UI
+            renderAgentsGrid();
+            renderLeaderboard();
+            
+            showToast(`Successfully invested $${amount.toLocaleString()} in ${agent.name}. Your allocation is now live.`, false);
+            
+            // Bonus: slightly boost visibility / simulate immediate small return
+            setTimeout(() => {
+                agent.pnlAllTime += Math.round(amount * 0.008);
+                saveState();
+                renderAgentsGrid();
+                renderLeaderboard();
+            }, 1400);
+        }
+        
+        // Upload flow
+        function showUploadModal() {
+            document.getElementById('upload-modal').classList.remove('hidden');
+            document.getElementById('upload-modal').classList.add('flex');
+            
+            // Pre-fill some values occasionally
+            if (!document.getElementById('upload-name').value || document.getElementById('upload-name').value === 'MyAlphaAgent v4') {
+                // keep defaults
+            }
+        }
+        
+        function hideUploadModal() {
+            document.getElementById('upload-modal').classList.remove('flex');
+            document.getElementById('upload-modal').classList.add('hidden');
+        }
+        
+        function submitUpload() {
+            const name = document.getElementById('upload-name').value.trim() || "Untitled Agent";
+            const creator = document.getElementById('upload-creator').value.trim() || "@anonymous_creator";
+            const desc = document.getElementById('upload-desc').value.trim();
+            const strategy = document.getElementById('upload-strategy').value;
+            const split = parseInt(document.getElementById('upload-split').value);
+            const roi = parseFloat(document.getElementById('upload-roi').value) || 8;
+            const winRate = parseFloat(document.getElementById('upload-winrate').value) || 65;
+            const maxDD = parseFloat(document.getElementById('upload-maxdd').value) || 10;
+            
+            const newAgent = {
+                id: Date.now(),
+                name: name,
+                creator: creator,
+                avatarSeed: Math.floor(Math.random() * 80) + 5,
+                desc: desc || "New autonomous trading agent uploaded to the Arena.",
+                strategy: strategy,
+                tags: [strategy.includes("LLM") || strategy.includes("ML") ? "AI-Powered" : "Quantitative", "New"],
+                roi30d: roi,
+                pnlAllTime: Math.round(roi * 45000), // seed some PnL
+                aum: 125000, // starts small
+                winRate: winRate,
+                sharpe: (roi / maxDD * 0.6 + 0.8).toFixed(2) * 1,
+                maxDD: maxDD,
+                investors: 3,
+                profitShareToInvestors: split,
+                status: "active",
+                executionType: "platform_private",
+                isVerified: true,
+                isSubscribed: true,                  // Only subscribed creators can receive funding
+                equityCurve: null
+            };
+            
+            agents.unshift(newAgent); // Add to top
+            saveState();
+            
+            hideUploadModal();
+            
+            // Refresh views
+            renderAgentsGrid();
+            renderLeaderboard();
+            
+            showToast(`Thank you! "${name}" has been submitted for review. It will appear in Discover shortly after verification.`, false);
+            
+            // Auto scroll to discover after short delay
+            setTimeout(() => {
+                document.getElementById('discover').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 1600);
+            
+            // Easter egg: if user used "Sparrow" or similar, congratulate
+            if (name.toLowerCase().includes('sparrow') || creator.toLowerCase().includes('jack')) {
+                setTimeout(() => {
+                    showToast("Nice handle! Welcome to the Arena, pirate.", false);
+                }, 4200);
+            }
+        }
+        
+        // Simulate market day (advances all agents randomly but biased positively)
+        function simulateMarketDay() {
+            const btns = document.querySelectorAll('button');
+            btns.forEach(b => b.disabled = true);
+            
+            let totalDailyPnL = 0;
+            
+            agents.forEach(agent => {
+                // Risk-based volatility
+                const baseVol = Math.max(0.6, agent.maxDD / 18);
+                const bias = (agent.roi30d / 30 / 100) * 1.1; // slight positive bias from historical edge
+                
+                const dailyReturn = (Math.random() * baseVol * 2 - baseVol * 0.7) / 100 + bias;
+                
+                const pnlChange = Math.round(agent.aum * dailyReturn);
+                agent.pnlAllTime += pnlChange;
+                agent.aum = Math.max(50000, Math.round(agent.aum * (1 + dailyReturn)));
+                
+                // Update 30d ROI roughly
+                agent.roi30d = parseFloat((agent.roi30d * 0.7 + (dailyReturn * 100 * 30) * 0.3).toFixed(1));
+                
+                // Occasional investor bump for big winners
+                if (dailyReturn > 0.018 && Math.random() > 0.6) {
+                    agent.investors += Math.ceil(Math.random() * 2) + 1;
+                }
+                
+                totalDailyPnL += pnlChange;
+            });
+            
+            saveState();
+            
+            // Re-render
+            renderAgentsGrid();
+            renderLeaderboard();
+            
+            // Update last sim time
+            document.getElementById('last-sim-time').innerText = 'Just now';
+            
+            // Toast summary
+            const sign = totalDailyPnL >= 0 ? '+' : '';
+            showToast(`Market day advanced. Total platform PnL today: ${sign}$${Math.abs(totalDailyPnL).toLocaleString()}`, totalDailyPnL < 0);
+            
+            // Re-enable buttons
+            setTimeout(() => {
+                btns.forEach(b => b.disabled = false);
+            }, 650);
+            
+            // If user has investments, show a small portfolio update toast
+            if (myInvestments.length > 0) {
+                setTimeout(() => {
+                    showToast("Your funded agents have been marked to market.", false);
+                }, 2100);
+            }
+        }
+        
+        // Simple toast
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            
+            const toast = document.createElement('div');
+            toast.className = `max-w-xs px-5 py-3.5 rounded-2xl shadow-2xl flex gap-x-3 items-start border text-sm ${isError ? 'bg-rose-950 border-rose-700 text-rose-200' : 'bg-zinc-900 border-emerald-700 text-white'}`;
+            
+            toast.innerHTML = `
+                <div class="pt-0.5">
+                    <i class="fa-solid ${isError ? 'fa-exclamation-circle text-rose-400' : 'fa-check-circle text-emerald-400'}"></i>
+                </div>
+                <div class="flex-1 leading-snug pr-1">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.25s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 220);
+            }, 4800);
+        }
+        
+        // ==================== IMPROVED MY PORTFOLIO DASHBOARD ====================
+        function showPortfolioModal() {
+            const modal = document.createElement('div');
+            modal.className = `fixed inset-0 bg-black/80 backdrop-blur z-[85] flex items-center justify-center p-4`;
+            
+            let totalInvested = 0;
+            let totalCurrent = 0;
+            let html = '';
+
+            if (myInvestments.length === 0) {
+                html = `
+                    <div class="text-center py-12 px-6">
+                        <i class="fa-solid fa-chart-pie text-7xl text-zinc-700 mb-6"></i>
+                        <div class="text-xl font-semibold mb-2">Your Portfolio is Empty</div>
+                        <p class="text-zinc-400 max-w-xs mx-auto">Start by discovering agents in the Arena and allocating capital to strategies you believe in.</p>
+                        
+                        <div class="flex gap-x-3 justify-center mt-8">
+                            <button onclick="this.closest('.fixed').remove(); document.getElementById('discover').scrollIntoView({behavior:'smooth'})" 
+                                    class="px-6 py-3 rounded-2xl border border-emerald-600 text-emerald-400 hover:bg-emerald-950 text-sm font-medium">
+                                Browse Agents
+                            </button>
+                            <button onclick="this.closest('.fixed').remove(); document.getElementById('leaderboard').scrollIntoView({behavior:'smooth'})" 
+                                    class="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-sm font-medium">
+                                View Leaderboard
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                let cardsHTML = '';
+
+                myInvestments.forEach((inv) => {
+                    const agent = agents.find(a => a.id === inv.agentId);
+                    if (!agent) return;
+
+                    const growthFactor = 1 + (agent.roi30d / 100 * 0.7);
+                    const currentVal = Math.max(0, Math.round(inv.amountInvested * growthFactor));
+                    totalInvested += inv.amountInvested;
+                    totalCurrent += currentVal;
+
+                    const pnl = currentVal - inv.amountInvested;
+                    const pnlClass = pnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+
+                    cardsHTML += `
+                        <div class="bg-zinc-950 border border-white/10 rounded-2xl p-5">
+                            <div class="flex justify-between">
+                                <div>
+                                    <div class="font-semibold text-lg">${inv.agentName}</div>
+                                    <div class="text-xs text-zinc-400">Funded ${new Date(inv.investedAt).toLocaleDateString()}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-mono text-xl font-semibold">$${currentVal.toLocaleString()}</div>
+                                    <div class="text-xs ${pnlClass} font-medium mt-0.5">
+                                        ${pnl >= 0 ? '+' : ''}$${pnl.toLocaleString()} 
+                                        <span class="opacity-70">(${((pnl / inv.amountInvested) * 100).toFixed(1)}%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-white/10 grid grid-cols-3 gap-4 text-xs">
+                                <div>
+                                    <div class="text-zinc-400">Invested</div>
+                                    <div class="font-mono">$${inv.amountInvested.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div class="text-zinc-400">Agent ROI</div>
+                                    <div class="font-mono text-emerald-400">+${agent.roi30d}%</div>
+                                </div>
+                                <div>
+                                    <div class="text-zinc-400">Your Share</div>
+                                    <div class="font-mono">${((inv.amountInvested / agent.aum) * 100).toFixed(1)}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const totalPnl = totalCurrent - totalInvested;
+                const portfolioROI = totalInvested > 0 ? ((totalCurrent / totalInvested - 1) * 100) : 0;
+
+                html = `
+                    <div class="space-y-6">
+                        <!-- Summary -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-zinc-950 border border-white/10 rounded-2xl p-5">
+                                <div class="text-xs text-zinc-400">TOTAL INVESTED</div>
+                                <div class="font-mono text-3xl font-semibold mt-1">$${totalInvested.toLocaleString()}</div>
+                            </div>
+                            <div class="bg-zinc-950 border border-white/10 rounded-2xl p-5">
+                                <div class="text-xs text-zinc-400">CURRENT VALUE</div>
+                                <div class="font-mono text-3xl font-semibold mt-1">$${totalCurrent.toLocaleString()}</div>
+                            </div>
+                            <div class="bg-zinc-950 border border-white/10 rounded-2xl p-5">
+                                <div class="text-xs text-zinc-400">PORTFOLIO ROI</div>
+                                <div class="font-mono text-3xl font-semibold mt-1 ${portfolioROI >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                                    ${portfolioROI >= 0 ? '+' : ''}${portfolioROI.toFixed(1)}%
+                                </div>
+                                <div class="text-xs mt-1 ${totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                                    ${totalPnl >= 0 ? '+' : ''}$${totalPnl.toLocaleString()} PnL
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Positions -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3 px-1">
+                                <div class="text-sm font-medium text-zinc-300">Your Positions (${myInvestments.length})</div>
+                            </div>
+                            <div class="space-y-3">
+                                ${cardsHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            modal.innerHTML = `
+                <div class="modal bg-zinc-900 border border-white/10 w-full max-w-xl rounded-3xl overflow-hidden max-h-[92vh] flex flex-col">
+                    <div class="px-6 py-5 border-b border-white/10 flex justify-between items-center flex-shrink-0">
+                        <div>
+                            <div class="font-semibold text-2xl">My Portfolio</div>
+                            <div class="text-xs text-emerald-400">${myInvestments.length} Active Position${myInvestments.length !== 1 ? 's' : ''}</div>
+                        </div>
+                        <button onclick="this.closest('.fixed').remove()" class="text-3xl text-zinc-400 hover:text-white leading-none">×</button>
+                    </div>
+                    
+                    <div class="p-6 overflow-auto flex-1">
+                        ${html}
+                    </div>
+                    
+                    <div class="p-6 border-t border-white/10 flex-shrink-0">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-semibold text-sm transition-all">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // Initialize everything
+        function initializeApp() {
+            initializeTailwind();
+            seedInitialAgents();
+            
+            // Initial renders
+            renderAgentsGrid();
+            renderLeaderboard();
+            
+            // Update stats (could be dynamic but static impressive numbers for now)
+            // They are already in HTML, but we can make them slightly dynamic if wanted
+            
+            // Keyboard support for search
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('focus', () => {
+                    if (window.innerWidth > 768) {
+                        document.getElementById('discover').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            }
+            
+            // Demo tip toast on first load (only once)
+            if (!localStorage.getItem('agentforge_visited')) {
+                setTimeout(() => {
+                    showToast("Tip: Click 'Advance Market Day' on the leaderboard to simulate live trading performance across all agents.", false);
+                    localStorage.setItem('agentforge_visited', 'true');
+                }, 6200);
+            }
+            
+            // Make sure leaderboard sort indicator works on initial load (default desc on PnL)
+            // Already handled in renderLeaderboard
+            
+            console.log('%c[AgentForge] Prototype initialized successfully. All interactive features ready.', 'color:#166534');
+        }
+        
+        // ==================== AUTH + WALLET SYSTEM ====================
+        let currentUser = null;
+        let connectedWallet = null;
+
+        function updateNavUserArea() {
+            const container = document.getElementById('nav-user-area');
+            if (!container) return;
+
+            if (currentUser) {
+                const walletShort = connectedWallet ? connectedWallet.slice(0, 6) + '...' + connectedWallet.slice(-4) : 'Not connected';
+                container.innerHTML = `
+                    <div onclick="showAccountModal()" class="flex items-center gap-x-2.5 px-3 py-1.5 rounded-2xl border border-white/10 hover:bg-white/5 cursor-pointer transition-all">
+                        <div class="text-right">
+                            <div class="text-xs text-emerald-400 font-medium">${currentUser.username}</div>
+                            <div class="font-mono text-[10px] text-zinc-400">${walletShort}</div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 overflow-hidden">
+                            <img src="https://i.pravatar.cc/32?u=${currentUser.username}" class="w-full h-full object-cover" alt="">
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <button onclick="showLoginModal()" 
+                            class="px-5 py-2 rounded-2xl border border-white/15 text-sm font-medium hover:bg-white/5 transition-all">
+                        Log in
+                    </button>
+                `;
+            }
+        }
+
+        function showLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-modal').classList.add('flex');
+        }
+
+        function hideLoginModal() {
+            document.getElementById('login-modal').classList.remove('flex');
+            document.getElementById('login-modal').classList.add('hidden');
+        }
+
+        function showSignupModal() {
+            document.getElementById('signup-modal').classList.remove('hidden');
+            document.getElementById('signup-modal').classList.add('flex');
+        }
+
+        function hideSignupModal() {
+            document.getElementById('signup-modal').classList.remove('flex');
+            document.getElementById('signup-modal').classList.add('hidden');
+        }
+
+        function switchToSignup() {
+            hideLoginModal();
+            showSignupModal();
+        }
+
+        function switchToLogin() {
+            hideSignupModal();
+            showLoginModal();
+        }
+
+        function performLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const username = email.split('@')[0] || 'User';
+
+            currentUser = {
+                username: username,
+                email: email,
+                joined: new Date().toISOString()
+            };
+
+            localStorage.setItem('agentforge_user', JSON.stringify(currentUser));
+            hideLoginModal();
+            updateNavUserArea();
+            showToast(`Welcome back, ${username}!`, false);
+        }
+
+        function performSignup() {
+            const username = document.getElementById('signup-username').value.trim() || 'NewUser';
+            const email = document.getElementById('signup-email').value.trim();
+
+            currentUser = {
+                username: username,
+                email: email,
+                joined: new Date().toISOString()
+            };
+
+            localStorage.setItem('agentforge_user', JSON.stringify(currentUser));
+            hideSignupModal();
+            updateNavUserArea();
+            showToast(`Account created! Welcome to AgentForge, ${username}.`, false);
+        }
+
+        function logout() {
+            currentUser = null;
+            connectedWallet = null;
+            localStorage.removeItem('agentforge_user');
+            localStorage.removeItem('agentforge_wallet');
+            updateNavUserArea();
+            showToast('Logged out successfully.', false);
+        }
+
+        // Wallet functions
+        function showWalletModal() {
+            document.getElementById('wallet-modal').classList.remove('hidden');
+            document.getElementById('wallet-modal').classList.add('flex');
+        }
+
+        function hideWalletModal() {
+            document.getElementById('wallet-modal').classList.remove('flex');
+            document.getElementById('wallet-modal').classList.add('hidden');
+        }
+
+        function connectFakeWallet() {
+            connectedWallet = '0x71C' + Math.random().toString(16).slice(2, 10) + 'f9a2';
+            localStorage.setItem('agentforge_wallet', connectedWallet);
+            hideWalletModal();
+            updateNavUserArea();
+            showToast('Wallet connected successfully!', false);
+        }
+
+        function disconnectWallet() {
+            connectedWallet = null;
+            localStorage.removeItem('agentforge_wallet');
+            updateNavUserArea();
+            showToast('Wallet disconnected.', false);
+        }
+
+        // Gate functions
+        function handleUploadClick() {
+            if (!currentUser) {
+                showLoginModal();
+                showToast('Please log in to upload an agent.', false);
+                return;
+            }
+            showUploadModal();
+        }
+
+        function handleFundClick(agentId) {
+            const agent = agents.find(a => a.id === agentId);
+            if (!agent) return;
+
+            if (!currentUser) {
+                showLoginModal();
+                showToast('Please log in to fund agents.', false);
+                return;
+            }
+            if (!connectedWallet) {
+                showWalletModal();
+                showToast('Connect your wallet to fund agents.', false);
+                return;
+            }
+            if (!agent.isSubscribed) {
+                showToast('This creator has not activated their subscription yet. Investors can only connect to Verified Creators.', false);
+                return;
+            }
+            // Proceed with funding
+            showDetailModal(agentId);
+            setTimeout(() => {
+                fundFromModal();
+            }, 300);
+        }
+
+        // Override the original fundFromModal to use the gated version
+        const originalFundFromModal = window.fundFromModal;
+        window.fundFromModal = function() {
+            if (!currentUser || !connectedWallet) {
+                hideDetailModal();
+                if (!currentUser) showLoginModal();
+                else showWalletModal();
+                return;
+            }
+            originalFundFromModal();
+        };
+
+        function showAccountModal() {
+            if (!currentUser) return;
+
+            const modal = document.createElement('div');
+            modal.className = `fixed inset-0 bg-black/80 backdrop-blur z-[85] flex items-center justify-center p-4`;
+            
+            const walletDisplay = connectedWallet || 'Not connected';
+            
+            modal.innerHTML = `
+                <div class="modal bg-zinc-900 border border-white/10 w-full max-w-md rounded-3xl overflow-hidden">
+                    <div class="px-7 py-5 border-b border-white/10 flex justify-between items-center">
+                        <div class="font-semibold">My Account</div>
+                        <button class="text-xl text-zinc-400 hover:text-white" onclick="this.closest('.fixed').remove()">×</button>
+                    </div>
+                    <div class="p-7 space-y-5 text-sm">
+                        <div>
+                            <div class="text-xs text-zinc-400">USERNAME</div>
+                            <div class="font-medium">${currentUser.username}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-zinc-400">EMAIL</div>
+                            <div>${currentUser.email}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-zinc-400">CONNECTED WALLET</div>
+                            <div class="font-mono text-emerald-400">${walletDisplay}</div>
+                            ${connectedWallet ? 
+                                `<button onclick="disconnectWallet(); this.closest('.fixed').remove()" class="text-xs text-rose-400 mt-1 hover:underline">Disconnect Wallet</button>` : 
+                                `<button onclick="showWalletModal(); this.closest('.fixed').remove()" class="text-xs text-emerald-400 mt-1 hover:underline">Connect Wallet</button>`
+                            }
+                        </div>
+                        <div class="pt-4 border-t border-white/10 flex gap-x-3">
+                            <button onclick="showCreatorDashboard(); this.closest('.fixed').remove()" class="flex-1 py-3 rounded-2xl border border-emerald-600 text-emerald-400 text-sm font-medium">Creator Dashboard</button>
+                            <button onclick="logout(); this.closest('.fixed').remove()" class="flex-1 py-3 rounded-2xl border border-white/15 text-sm font-medium">Log Out</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // ==================== BASIC CREATOR DASHBOARD ====================
+        function showCreatorDashboard() {
+            if (!currentUser) return;
+
+            const modal = document.createElement('div');
+            modal.className = `fixed inset-0 bg-black/80 backdrop-blur z-[85] flex items-center justify-center p-4`;
+            
+            const myAgents = agents.filter(a => 
+                a.creator === currentUser.username || 
+                a.creator === `@${currentUser.username}` ||
+                a.creator.toLowerCase().includes(currentUser.username.toLowerCase())
+            );
+
+            let content = '';
+
+            if (myAgents.length === 0) {
+                content = `
+                    <div class="text-center py-10">
+                        <i class="fa-solid fa-robot text-6xl text-zinc-700 mb-5"></i>
+                        <div class="font-semibold text-lg">No agents uploaded yet</div>
+                        <p class="text-zinc-400 mt-2">Upload your first AI trading agent to start attracting capital.</p>
+                        <button onclick="this.closest('.fixed').remove(); showUploadModal()" 
+                                class="mt-6 px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-sm font-semibold">
+                            Upload Agent
+                        </button>
+                    </div>
+                `;
+            } else {
+                let agentsHTML = '';
+
+                myAgents.forEach(agent => {
+                    const totalAUM = agent.aum || 0;
+                    const investorCount = agent.investors || 0;
+                    const statusBadge = agent.isSubscribed 
+                        ? `<span class="text-[10px] px-2 py-px rounded-full bg-emerald-900/70 text-emerald-300 border border-emerald-700">Verified</span>` 
+                        : `<span class="text-[10px] px-2 py-px rounded-full bg-zinc-700 text-zinc-300">Free</span>`;
+
+                    agentsHTML += `
+                        <div class="bg-zinc-950 border border-white/10 rounded-2xl p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-semibold flex items-center gap-x-2">
+                                        ${agent.name} 
+                                        ${statusBadge}
+                                    </div>
+                                    <div class="text-xs text-zinc-400 mt-1">${agent.strategy}</div>
+                                </div>
+                                <div class="text-right text-xs">
+                                    <div class="font-mono text-emerald-400">+${agent.roi30d}%</div>
+                                    <div class="text-zinc-400">30d ROI</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-white/10 grid grid-cols-3 gap-4 text-xs">
+                                <div>
+                                    <div class="text-zinc-400">AUM Attracted</div>
+                                    <div class="font-mono font-medium">$${(totalAUM / 1000000).toFixed(2)}M</div>
+                                </div>
+                                <div>
+                                    <div class="text-zinc-400">Investors</div>
+                                    <div class="font-mono font-medium">${investorCount}</div>
+                                </div>
+                                <div>
+                                    <div class="text-zinc-400">Status</div>
+                                    <div class="font-medium ${agent.isSubscribed ? 'text-emerald-400' : 'text-zinc-400'}">
+                                        ${agent.isSubscribed ? 'Receiving Capital' : 'Not Active'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                content = `
+                    <div class="space-y-4">
+                        <div class="text-sm text-zinc-300 px-1">Your Agents (${myAgents.length})</div>
+                        ${agentsHTML}
+                    </div>
+                `;
+            }
+
+            modal.innerHTML = `
+                <div class="modal bg-zinc-900 border border-white/10 w-full max-w-lg rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
+                    <div class="px-6 py-5 border-b border-white/10 flex justify-between items-center flex-shrink-0">
+                        <div class="font-semibold text-xl">Creator Dashboard</div>
+                        <button onclick="this.closest('.fixed').remove()" class="text-2xl text-zinc-400 hover:text-white">×</button>
+                    </div>
+                    
+                    <div class="p-6 overflow-auto flex-1">
+                        ${content}
+                    </div>
+                    
+                    <div class="p-6 border-t border-white/10 flex-shrink-0">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="w-full py-3 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-sm font-medium">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Load saved user and wallet on init
+        function loadUserSession() {
+            const savedUser = localStorage.getItem('agentforge_user');
+            const savedWallet = localStorage.getItem('agentforge_wallet');
+
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+            }
+            if (savedWallet) {
+                connectedWallet = savedWallet;
+            }
+            updateNavUserArea();
+        }
+
+        // Boot
+        window.onload = function() {
+            initializeApp();
+            loadUserSession();
+            
+            // PWA Service Worker Registration
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {
+                    // If no sw.js (single file mode), create inline service worker
+                    createInlineServiceWorker();
+                });
+            }
+        };
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.getElementById('install-btn');
+            if (installBtn) installBtn.classList.remove('hidden');
+        });
+
+        function installPWA() {
+            const installBtn = document.getElementById('install-btn');
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    if (installBtn) installBtn.classList.add('hidden');
+                });
+            } else {
+                // Fallback for manual install
+                alert("To install: Tap the menu (⋮) in Chrome and select 'Add to Home screen' or 'Install app'.");
+            }
+        }
+
+        // Create inline service worker for single-file PWA
+        function createInlineServiceWorker() {
+            const swCode = `
+                const CACHE_NAME = 'agentforge-v1';
+                const urlsToCache = ['/', '/index.html'];
+
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => cache.addAll(urlsToCache))
+                    );
+                });
+
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => response || fetch(event.request))
+                    );
+                });
+            `;
+            
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            
+            navigator.serviceWorker.register(swUrl).then(registration => {
+                console.log('%c[AgentForge PWA] Service Worker registered for offline support', 'color:#166534');
+            }).catch(err => {
+                console.log('Service Worker registration failed:', err);
+            });
+        }
+
+        // ==================== MESSAGING FEATURE ====================
+        let currentMessageAgentId = null;
+
+        function openMessageModal(agentId) {
+            const agent = agents.find(a => a.id === agentId);
+            if (!agent || !agent.isSubscribed) {
+                showToast('Messaging is only available for Verified Creators.', false);
+                return;
+            }
+            currentMessageAgentId = agentId;
+            document.getElementById('message-text').value = '';
+            document.getElementById('message-modal').classList.remove('hidden');
+            document.getElementById('message-modal').classList.add('flex');
+        }
+
+        function hideMessageModal() {
+            document.getElementById('message-modal').classList.remove('flex');
+            document.getElementById('message-modal').classList.add('hidden');
+            currentMessageAgentId = null;
+        }
+
+        function sendMessage() {
+            const messageText = document.getElementById('message-text').value.trim();
+            if (!messageText) {
+                showToast('Please enter a message.', true);
+                return;
+            }
+            if (!currentMessageAgentId) return;
+
+            const agent = agents.find(a => a.id === currentMessageAgentId);
+            hideMessageModal();
+
+            // Simulate sending
+            setTimeout(() => {
+                showToast(`Message sent to ${agent.creator}! They will receive it via their dashboard.`, false);
+            }, 600);
+        }
+        
+        // Expose a couple helpers to console for fun / debugging
+        window.AgentForge = {
+            simulateDay: () => simulateMarketDay(),
+            addDemoAgent: () => {
+                const demo = agents[0];
+                const newOne = {...demo, id: Date.now(), name: demo.name + " Copy", creator: "@demo_user", aum: 450000, pnlAllTime: 185000, investors: 12};
+                agents.unshift(newOne);
+                localStorage.setItem('agentforge_agents', JSON.stringify(agents));
+                document.getElementById('agents-grid').innerHTML = '';
+                renderAgentsGrid();
+                renderLeaderboard();
+            }
+        };
+    </script>
+</body>
+</html>
